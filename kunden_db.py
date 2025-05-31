@@ -74,8 +74,9 @@ if authentication_status:
         nachname = st.text_input("Nachname")
         email = st.text_input("E-Mail")
         adresse = st.text_area("Adresse")
-        produkt = st.selectbox("Produkt", ALLE_PRODUKTE)
         erstgespraech = st.date_input("Erstgespräch")
+        produkt = st.selectbox("Produkt", ALLE_PRODUKTE)
+        st.write("Produkt ausgewählt:", produkt)
         tags = st.multiselect("Tags", ALLE_TAGS)
 
         konto_ids = ["", "", "", ""]
