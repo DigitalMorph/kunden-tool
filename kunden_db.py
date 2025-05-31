@@ -97,11 +97,19 @@ if authentication_status:
             konto_ids[2] = st.text_input("Konto ID3")
             konto_ids[3] = st.text_input("Konto ID4")
 
-        if kaufstatus == "gekauft":
-            bestelldatum = st.date_input("Bestelldatum")
-            rechnung_geschickt = st.checkbox("✅ Rechnung geschickt")
-            rechnung_bezahlt = st.checkbox("💶 Rechnung bezahlt")
-            zugang_digimember = st.checkbox("🔐 Zugang DigiMember angelegt")
+        if produkt == "Expert-Advisor":
+            st.markdown("**🔧 Expert Advisor Informationen**")
+            konto_ids[0] = st.text_input("Konto ID1")
+            konto_ids[1] = st.text_input("Konto ID2")
+            konto_ids[2] = st.text_input("Konto ID3")
+            konto_ids[3] = st.text_input("Konto ID4")
+
+            if kaufstatus == "gekauft":
+                bestelldatum = st.date_input("Bestelldatum")
+                rechnung_geschickt = st.checkbox("✅ Rechnung geschickt")
+                rechnung_bezahlt = st.checkbox("💶 Rechnung bezahlt")
+                zugang_digimember = st.checkbox("🔐 Zugang DigiMember angelegt")
+
 
         kommentar = st.text_area("Kommentar (optional)")
         submitted = st.form_submit_button("Speichern")
