@@ -5,7 +5,7 @@ import os
 import yaml
 import streamlit_authenticator as stauth
 
-# Login-Konfiguration
+# Login-Konfiguration laden
 with open("config.yaml") as file:
     config = yaml.safe_load(file)
 
@@ -69,48 +69,47 @@ if authentication_status:
     kunden_df, kommentar_df = lade_daten()
 
     st.sidebar.header("📥 Neuen Kunden anlegen")
-    with st.sidebar.form("neuer_kunde"):
-        vorname = st.text_input("Vorname")
-        nachname = st.text_input("Nachname")
-        email = st.text_input("E-Mail")
-        adresse = st.text_area("Adresse")
-        erstgespraech = st.date_input("Erstgespräch")
-        produkt = st.selectbox("Produkt", options=ALLE_PRODUKTE, key="produkt_select")
-        st.markdown(f"🧪 Debug: Gewähltes Produkt = `{produkt}`")
-        tags = st.multiselect("Tags", ALLE_TAGS)
 
-        konto_ids = ["", "", "", ""]
-        bestelldatum = ""
-        
-        if produkt.strip() == "Expert-Advisor":
-            st.markdown("**🔧 Expert Advisor Informationen**")
-            konto_ids[0] = st.text_input("Konto ID1")
-            konto_ids[1] = st.text_input("Konto ID2")
-            konto_ids[2] = st.text_input("Konto ID3")
-            konto_ids[3] = st.text_input("Konto ID4")
-            bestelldatum = st.date_input("Bestelldatum")
+    vorname = st.sidebar.text_input("Vorname")
+    nachname = st.sidebar.text_input("Nachname")
+    email = st.sidebar.text_input("E-Mail")
+    adresse = st.sidebar.text_area("Adresse")
+    erstgespraech = st.sidebar.date_input("Erstgespräch")
+    produkt = st.sidebar.selectbox("Produkt", ALLE_PRODUKTE)
+    tags = st.sidebar.multiselect("Tags", ALLE_TAGS)
 
-        kommentar = st.text_area("Kommentar (optional)")
-        submitted = st.form_submit_button("Speichern")
+    konto_ids = ["", "", "", ""]
+    bestelldatum = ""
 
-        if submitted and vorname and nachname and email:
-            kunden_id = speichere_kunde({
-                "Vorname": vorname,
-                "Nachname": nachname,
-                "E-Mail": email,
-                "Adresse": adresse,
-                "Produkt": produkt,
-                "Tags": ";".join(tags),
-                "Konto ID1": konto_ids[0],
-                "Konto ID2": konto_ids[1],
-                "Konto ID3": konto_ids[2],
-                "Konto ID4": konto_ids[3],
-                "Bestelldatum": str(bestelldatum) if produkt == "Expert-Advisor" else "",
-                "Erstgespräch": str(erstgespraech)
-            })
-            if kommentar.strip():
-                speichere_kommentar(kunden_id, kommentar.strip())
-            st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
+    if produkt == "Expert-Advisor":
+        st.sidebar.markdown("**🔧 Expert Advisor Informationen**")
+        konto_ids[0] = st.sidebar.text_input("Konto ID1")
+        konto_ids[1] = st.sidebar.text_input("Konto ID2")
+        konto_ids[2] = st.sidebar.text_input("Konto ID3")
+        konto_ids[3] = st.sidebar.text_input("Konto ID4")
+        bestelldatum = st.sidebar.date_input("Bestelldatum")
+
+    kommentar = st.sidebar.text_area("Kommentar (optional)")
+    speichern = st.sidebar.button("💾 Speichern")
+
+    if speichern and vorname and nachname and email:
+        kunden_id = speichere_kunde({
+            "Vorname": vorname,
+            "Nachname": nachname,
+            "E-Mail": email,
+            "Adresse": adresse,
+            "Produkt": produkt,
+            "Tags": ";".join(tags),
+            "Konto ID1": konto_ids[0],
+            "Konto ID2": konto_ids[1],
+            "Konto ID3": konto_ids[2],
+            "Konto ID4": konto_ids[3],
+            "Bestelldatum": str(bestelldatum) if produkt == "Expert-Advisor" else "",
+            "Erstgespräch": str(erstgespraech)
+        })
+        if kommentar.strip():
+            speichere_kommentar(kunden_id, kommentar.strip())
+        st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
 
     st.subheader("📋 Kundenübersicht")
     tag_filter = st.multiselect("🔎 Filter nach Tags", ALLE_TAGS)
