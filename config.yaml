@@ -2,10 +2,10 @@ credentials:
   usernames:
     max:
       name: Max Mustermann
-      password: '$2b$12$1DxczSC4C2iVnh47NME1zObyftP8zI7NmX3lAe2XeXkZl.LbTTZMa'
+      password: '$2b$12$97ESGxRxrplczV3R5T/k0OnUd95SV88OEcAFBLiEG0V.YunH5nF7e'
     lisa:
       name: Lisa Müller
-      password: '$2b$12$2A5jGzYzQzTmnPUYgqShIuWjxu9mnWXvyAc6qbdo7EdrPlDHDzqQa'
+      password: '$2b$12$hULvR4.6rFt9LZqNwex8ieGbPboR5bYduEZiXe0j7XY6D.4ESQulW'
 
 cookie:
   name: kunden_tool
