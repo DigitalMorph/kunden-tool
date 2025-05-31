@@ -74,7 +74,7 @@ if authentication_status:
 
     kunden_df, kommentar_df = lade_daten()
 
-    st.sidebar.header("📅 Neuen Kunden anlegen")
+    st.sidebar.header("🗕️ Neuen Kunden anlegen")
     with st.sidebar.form("neuer_kunde"):
         vorname = st.text_input("Vorname")
         nachname = st.text_input("Nachname")
@@ -128,6 +128,7 @@ if authentication_status:
     tag_filter = st.multiselect("Tags", ALLE_TAGS)
     produkt_filter = st.multiselect("Produkt", ALLE_PRODUKTE)
 
+    kunden_df, kommentar_df = lade_daten()
     gefiltert = kunden_df.copy()
     if tag_filter:
         gefiltert = gefiltert[gefiltert["Tags"].fillna("").str.contains("|".join(tag_filter))]
@@ -138,6 +139,7 @@ if authentication_status:
 
     if not kunden_df.empty:
         with st.expander("✏️ Kundendaten bearbeiten", expanded=False):
+            kunden_df, kommentar_df = lade_daten()
             bearbeite_kunde = st.selectbox(
                 "Kunden-ID auswählen",
                 kunden_df["ID"].astype(str) + " – " + kunden_df["Vorname"] + " " + kunden_df["Nachname"],
@@ -183,10 +185,10 @@ if authentication_status:
                         if kommentar_neu.strip():
                             speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
                         st.success("Änderungen gespeichert.")
+                        st.experimental_rerun()
 
                 kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id]
                 st.write("💬 Kommentare")
                 st.write(kommentare_kunde.sort_values("Datum", ascending=False).reset_index(drop=True))
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
-
