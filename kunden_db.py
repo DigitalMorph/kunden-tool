@@ -136,6 +136,60 @@ if authentication_status:
 
     st.dataframe(gefiltert)
 
+    with st.expander("✏️ Kundendaten bearbeiten", expanded=False):
+        if not kunden_df.empty:
+            bearbeite_kunde = st.selectbox(
+                "Kunden-ID auswählen",
+                kunden_df["ID"].astype(str) + " – " + kunden_df["Vorname"] + " " + kunden_df["Nachname"]
+            )
+            if bearbeite_kunde:
+                ausgewählte_id = int(bearbeite_kunde.split("–")[0].strip())
+                kunde = kunden_df[kunden_df["ID"] == ausgewählte_id].iloc[0]
+
+                with st.form("kunde_bearbeiten"):
+                    kunde_dict = {}
+                    kunde_dict["Vorname"] = st.text_input("Vorname", value=kunde["Vorname"])
+                    kunde_dict["Nachname"] = st.text_input("Nachname", value=kunde["Nachname"])
+                    kunde_dict["E-Mail"] = st.text_input("E-Mail", value=kunde["E-Mail"])
+                    kunde_dict["Adresse"] = st.text_area("Adresse", value=kunde["Adresse"])
+                    kunde_dict["Erstgespräch"] = st.date_input("Erstgespräch", value=pd.to_datetime(kunde["Erstgespräch"]))
+                    kunde_dict["Produkt"] = st.selectbox("Produkt", ALLE_PRODUKTE, index=ALLE_PRODUKTE.index(kunde["Produkt"]))
+                    kunde_dict["Status"] = st.selectbox("Status", ALLE_STATUS, index=ALLE_STATUS.index(kunde["Status"]))
+                    kunde_dict["Tags"] = ";".join(st.multiselect("Tags", ALLE_TAGS, default=kunde["Tags"].split(";") if pd.notna(kunde["Tags"]) else []))
+
+                    if kunde_dict["Produkt"] == "Expert-Advisor":
+                        kunde_dict["Konto ID1"] = st.text_input("Konto ID1", value=kunde["Konto ID1"])
+                        kunde_dict["Konto ID2"] = st.text_input("Konto ID2", value=kunde["Konto ID2"])
+                        kunde_dict["Konto ID3"] = st.text_input("Konto ID3", value=kunde["Konto ID3"])
+                        kunde_dict["Konto ID4"] = st.text_input("Konto ID4", value=kunde["Konto ID4"])
+                    else:
+                        kunde_dict["Konto ID1"] = kunde_dict["Konto ID2"] = kunde_dict["Konto ID3"] = kunde_dict["Konto ID4"] = ""
+
+                    if kunde_dict["Status"] == "gekauft":
+                        kunde_dict["Bestelldatum"] = st.date_input("Bestelldatum", value=pd.to_datetime(kunde["Bestelldatum"]) if pd.notna(kunde["Bestelldatum"]) else datetime.today())
+                        kunde_dict["Rechnung geschickt"] = st.checkbox("Rechnung geschickt", value=bool(kunde["Rechnung geschickt"]))
+                        kunde_dict["Rechnung bezahlt"] = st.checkbox("Rechnung bezahlt", value=bool(kunde["Rechnung bezahlt"]))
+                        kunde_dict["Zugang DigiMember"] = st.checkbox("Zugang DigiMember angelegt", value=bool(kunde["Zugang DigiMember"]))
+                    else:
+                        kunde_dict["Bestelldatum"] = ""
+                        kunde_dict["Rechnung geschickt"] = kunde_dict["Rechnung bezahlt"] = kunde_dict["Zugang DigiMember"] = False
+
+                    kommentar_neu = st.text_area("Neuen Kommentar hinzufügen")
+                    speichern = st.form_submit_button("Änderungen speichern")
+
+                    if speichern:
+                        speichere_kunde(kunde_dict, kunden_id=ausgewählte_id)
+                        if kommentar_neu.strip():
+                            speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
+                        st.success("Änderungen gespeichert.")
+
+                kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id]
+                st.write("💬 Kommentare")
+                st.write(kommentare_kunde.sort_values("Datum", ascending=False).reset_index(drop=True))
+        else:
+            st.info("❕ Noch keine Kunden vorhanden.")
+
+
     st.subheader("✏️ Kundendaten bearbeiten")
     if not kunden_df.empty:
         bearbeite_kunde = st.selectbox(
