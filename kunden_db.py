@@ -57,6 +57,7 @@ if authentication_status:
             kunde["ID"] = neue_id
             df = pd.concat([df, pd.DataFrame([kunde])])
         df.to_csv(KUNDEN_DATEI, index=False)
+        return kunde["ID"]
 
     def speichere_kommentar(kunden_id, kommentar_text):
         df = pd.read_csv(KOMMENTAR_DATEI)
@@ -72,7 +73,7 @@ if authentication_status:
 
     kunden_df, kommentar_df = lade_daten()
 
-    st.sidebar.header("📥 Neuen Kunden anlegen")
+    st.sidebar.header("📅 Neuen Kunden anlegen")
     with st.sidebar.form("neuer_kunde"):
         vorname = st.text_input("Vorname")
         nachname = st.text_input("Nachname")
@@ -119,11 +120,12 @@ if authentication_status:
                     "Rechnung bezahlt": rechnung_bezahlt,
                     "Zugang DigiMember": zugang_digimember
                 }
-                speichere_kunde(kunde)
+                neue_id = speichere_kunde(kunde)
                 if kommentar.strip():
-                    letzter_id = pd.read_csv(KUNDEN_DATEI)["ID"].max()
-                    speichere_kommentar(letzter_id, kommentar.strip())
+                    speichere_kommentar(neue_id, kommentar.strip())
                 st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
+                kunden_df, kommentar_df = lade_daten()
+                st.experimental_rerun()  # Seite neu laden nach Speichern
 
     # Rest des Codes bleibt unverändert ...
 
