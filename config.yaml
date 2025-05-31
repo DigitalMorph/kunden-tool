@@ -1,0 +1,18 @@
+credentials:
+  usernames:
+    max:
+      name: Max Mustermann
+      password: '$2b$12$1DxczSC4C2iVnh47NME1zObyftP8zI7NmX3lAe2XeXkZl.LbTTZMa'
+    lisa:
+      name: Lisa Müller
+      password: '$2b$12$2A5jGzYzQzTmnPUYgqShIuWjxu9mnWXvyAc6qbdo7EdrPlDHDzqQa'
+
+cookie:
+  name: kunden_tool
+  key: abcdef123456
+  expiry_days: 30
+
+preauthorized:
+  emails:
+    - max@example.com
+    - lisa@example.com
