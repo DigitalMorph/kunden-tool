@@ -72,7 +72,7 @@ if authentication_status:
 
     st.title("👤 Kundenmanagement Tool")
 
-    kunden_df, kommentar_df = lade_daten() 
+    kunden_df, kommentar_df = lade_daten()
 
     st.sidebar.header("📅 Neuen Kunden anlegen")
     with st.sidebar.form("neuer_kunde"):
@@ -124,66 +124,6 @@ if authentication_status:
                 st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
                 st.experimental_rerun()
 
-    if not kunden_df.empty:
-        for _, row in kunden_df.iterrows():
-            with st.expander(f"{row['Vorname']} {row['Nachname']} – {row['Produkt']}"):
-                bearbeiten_button = st.button(f"Bearbeiten {row['ID']}")
-                if bearbeiten_button:
-                    st.session_state[f"edit_{row['ID']}"] = not st.session_state.get(f"edit_{row['ID']}", False)
-
-                if st.session_state.get(f"edit_{row['ID']}", False):
-                    with st.form(f"edit_form_{row['ID']}"):
-                        vorname = st.text_input("Vorname", value=row["Vorname"])
-                        nachname = st.text_input("Nachname", value=row["Nachname"])
-                        email = st.text_input("E-Mail", value=row["E-Mail"])
-                        adresse = st.text_area("Adresse", value=row["Adresse"])
-                        erstgespraech = st.date_input("Erstgespräch", value=pd.to_datetime(row["Erstgespräch"]))
-                        produkt = st.selectbox("Produkt", ALLE_PRODUKTE, index=ALLE_PRODUKTE.index(row["Produkt"]))
-                        status = st.selectbox("Status", ALLE_STATUS, index=ALLE_STATUS.index(row["Status"]))
-                        tags = st.multiselect("Tags", ALLE_TAGS, default=row["Tags"].split(";") if pd.notna(row["Tags"]) else [])
-
-                        konto_ids = [st.text_input(f"Konto ID{i+1}", value=row[f"Konto ID{i+1}"]) for i in range(4)]
-
-                        bestelldatum = ""
-                        rechnung_geschickt = False
-                        rechnung_bezahlt = False
-                        zugang_digimember = False
-
-                        if status == "gekauft":
-                            bestelldatum = st.date_input("Bestelldatum", value=pd.to_datetime(row["Bestelldatum"]) if pd.notna(row["Bestelldatum"]) and row["Bestelldatum"] else datetime.today())
-                            rechnung_geschickt = st.checkbox("Rechnung geschickt", value=row.get("Rechnung geschickt", False))
-                            rechnung_bezahlt = st.checkbox("Rechnung bezahlt", value=row.get("Rechnung bezahlt", False))
-                            zugang_digimember = st.checkbox("Zugang DigiMember angelegt", value=row.get("Zugang DigiMember", False))
-
-                        kommentar_neu = st.text_area("Kommentar hinzufügen")
-
-                        if st.form_submit_button("Speichern"):
-                            kunde = {
-                                "Vorname": vorname,
-                                "Nachname": nachname,
-                                "E-Mail": email,
-                                "Adresse": adresse,
-                                "Produkt": produkt,
-                                "Status": status,
-                                "Tags": ";".join(tags),
-                                "Konto ID1": konto_ids[0],
-                                "Konto ID2": konto_ids[1],
-                                "Konto ID3": konto_ids[2],
-                                "Konto ID4": konto_ids[3],
-                                "Bestelldatum": str(bestelldatum) if status == "gekauft" else "",
-                                "Erstgespräch": str(erstgespraech),
-                                "Rechnung geschickt": rechnung_geschickt,
-                                "Rechnung bezahlt": rechnung_bezahlt,
-                                "Zugang DigiMember": zugang_digimember
-                            }
-                            speichere_kunde(kunde, kunden_id=row["ID"])
-                            if kommentar_neu.strip():
-                                speichere_kommentar(row["ID"], kommentar_neu.strip())
-                            st.success("Daten aktualisiert.")
-                            st.experimental_rerun()
-    else:
-        st.info("❕ Noch keine Kunden vorhanden.")
-
     st.subheader("🔍 Kunden filtern (optional)")
     tag_filter = st.multiselect("Tags", ALLE_TAGS)
     produkt_filter = st.multiselect("Produkt", ALLE_PRODUKTE)
@@ -193,6 +133,7 @@ if authentication_status:
         gefiltert = gefiltert[gefiltert["Tags"].fillna("").str.contains("|".join(tag_filter))]
     if produkt_filter:
         gefiltert = gefiltert[gefiltert["Produkt"].isin(produkt_filter)]
+
     st.dataframe(gefiltert)
 
     st.subheader("✏️ Kundendaten bearbeiten")
