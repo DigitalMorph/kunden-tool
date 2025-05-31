@@ -183,9 +183,6 @@ if authentication_status:
         st.info("❕ Noch keine Kunden vorhanden.")
 
 
-    st.subheader("📋 Kundenübersicht")
-    tag_filter = st.multiselect("🔎 Filter nach Tags", ALLE_TAGS)
-    produkt_filter = st.multiselect("🔎 Filter nach Produkt", ALLE_PRODUKTE)
 
     gefiltert = kunden_df.copy()
     if tag_filter:
