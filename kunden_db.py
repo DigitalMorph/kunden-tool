@@ -150,8 +150,21 @@ if authentication_status:
             try:
                 ausgewählte_id = int(kunden_auswahl.split("–")[0].strip())
                 kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id]
-                st.write(kommentare_kunde.sort_values("Datum", ascending=False).reset_index(drop=True))
+                st.markdown("#### Bisherige Kommentare")
+                st.dataframe(kommentare_kunde.sort_values("Datum", ascending=False).reset_index(drop=True))
+
+                st.markdown("#### Neuen Kommentar hinzufügen")
+                neuer_kommentar = st.text_area("Kommentar eingeben")
+                if st.button("💾 Kommentar speichern"):
+                    if neuer_kommentar.strip():
+                        speichere_kommentar(ausgewählte_id, neuer_kommentar.strip())
+                        st.success("Kommentar erfolgreich gespeichert.")
+                        st.experimental_rerun()
+                    else:
+                        st.warning("Bitte einen Kommentar eingeben.")
+
             except Exception as e:
                 st.error(f"Fehler bei der Auswahl des Kunden: {e}")
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
+
