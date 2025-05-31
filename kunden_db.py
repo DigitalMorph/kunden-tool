@@ -124,6 +124,7 @@ if authentication_status:
                 st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
                 st.experimental_rerun()
 
+    st.subheader("📋 Kundenübersicht")
     if not kunden_df.empty:
         for _, row in kunden_df.iterrows():
             with st.expander(f"{row['Vorname']} {row['Nachname']} – {row['Produkt']}"):
