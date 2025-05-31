@@ -2,7 +2,7 @@ credentials:
   usernames:
     max:
       name: Max Mustermann
-      password: '$2b$12$97ESGxRxrplczV3R5T/k0OnUd95SV88OEcAFBLiEG0V.YunH5nF7e'
+      password: '$2a$12$Rxz6FXub7bKRhYwXMZMjlOCj.Q1/yR43cFHyxSDJ1MEP93n0mFmxq'
 
 cookie:
   name: kunden_tool
