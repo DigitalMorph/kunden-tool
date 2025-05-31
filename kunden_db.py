@@ -33,7 +33,7 @@ if authentication_status:
 
     ALLE_TAGS = ["LIT2Trade", "LIT-EA", "LIT-Signal", "Interessent", "gekauft"]
     ALLE_PRODUKTE = ["kein Produkt", "Expert-Advisor", "LIT2Trade"]
-    ALLE_STATUS = ["interesse", "gekauft"]
+    ALLE_STATUS = ["Interesse", "Kauf"]
 
     def lade_daten():
         if not os.path.exists("data"):
@@ -188,7 +188,7 @@ if authentication_status:
                         st.experimental_rerun()
 
                 kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id].sort_values("Datum", ascending=False).reset_index(drop=True)
-                st.markdown("""<style>.kommentar-box {white-space: pre-wrap; border: 1px solid #ddd; padding: 2px 2px 6px 8px; margin-bottom: 4px; border-radius: 4px; background-color: #f9f9f9; font-size: 13px;} .kommentar-datum {font-weight: bold; color: #1b3061; margin-bottom: 2px; margin-top: -40;} .kommentar-text {margin: 0;}</style>""", unsafe_allow_html=True)
+                st.markdown("""<style>.kommentar-box {white-space: pre-wrap; border: 1px solid #ddd; padding: 0px 8px 6px 8px; margin-bottom: 4px; border-radius: 4px; background-color: #f9f9f9; font-size: 13px; line-height: 1.3;} .kommentar-datum {font-weight: bold; color: #1b3061; margin: 0;} .kommentar-text {margin: 0;}</style>""", unsafe_allow_html=True)
                 for _, row in kommentare_kunde.iterrows():
                     st.markdown(f"""
                         <div class='kommentar-box'>
