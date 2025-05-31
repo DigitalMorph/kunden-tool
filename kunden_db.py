@@ -136,11 +136,12 @@ if authentication_status:
 
     st.dataframe(gefiltert)
 
-    with st.expander("✏️ Kundendaten bearbeiten", expanded=False):
-        if not kunden_df.empty:
+    if not kunden_df.empty:
+        with st.expander("✏️ Kundendaten bearbeiten", expanded=False):
             bearbeite_kunde = st.selectbox(
                 "Kunden-ID auswählen",
-                kunden_df["ID"].astype(str) + " – " + kunden_df["Vorname"] + " " + kunden_df["Nachname"]
+                kunden_df["ID"].astype(str) + " – " + kunden_df["Vorname"] + " " + kunden_df["Nachname"],
+                key="bearbeiten_selectbox"
             )
             if bearbeite_kunde:
                 ausgewählte_id = int(bearbeite_kunde.split("–")[0].strip())
@@ -186,8 +187,8 @@ if authentication_status:
                 kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id]
                 st.write("💬 Kommentare")
                 st.write(kommentare_kunde.sort_values("Datum", ascending=False).reset_index(drop=True))
-        else:
-            st.info("❕ Noch keine Kunden vorhanden.")
+    else:
+        st.info("❕ Noch keine Kunden vorhanden.")
 
 
     st.subheader("✏️ Kundendaten bearbeiten")
