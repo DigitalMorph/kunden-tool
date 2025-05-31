@@ -52,13 +52,12 @@ if authentication_status:
         df = pd.read_csv(KUNDEN_DATEI)
         if kunden_id:
             df.loc[df["ID"] == kunden_id, list(kunde.keys())] = list(kunde.values())
-            neue_id = kunden_id
         else:
             neue_id = df["ID"].max() + 1 if not df.empty else 1
             kunde["ID"] = neue_id
             df = pd.concat([df, pd.DataFrame([kunde])])
         df.to_csv(KUNDEN_DATEI, index=False)
-        return neue_id
+        return kunde["ID"]
 
     def speichere_kommentar(kunden_id, kommentar_text):
         df = pd.read_csv(KOMMENTAR_DATEI)
@@ -158,8 +157,6 @@ if authentication_status:
                             rechnung_bezahlt = st.checkbox("Rechnung bezahlt", value=row.get("Rechnung bezahlt", False))
                             zugang_digimember = st.checkbox("Zugang DigiMember angelegt", value=row.get("Zugang DigiMember", False))
 
-                        kommentar_neu = st.text_area("Kommentar hinzufügen")
-
                         if st.form_submit_button("Speichern"):
                             kunde = {
                                 "Vorname": vorname,
@@ -180,13 +177,10 @@ if authentication_status:
                                 "Zugang DigiMember": zugang_digimember
                             }
                             speichere_kunde(kunde, kunden_id=row["ID"])
-                            if kommentar_neu.strip():
-                                speichere_kommentar(row["ID"], kommentar_neu.strip())
                             st.success("Daten aktualisiert.")
                             st.experimental_rerun()
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
-
 
 
     st.subheader("📋 Kundenübersicht")
