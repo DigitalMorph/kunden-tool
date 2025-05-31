@@ -36,10 +36,12 @@ if authentication_status:
 
     def lade_daten():
         if not os.path.exists("data"):
-            os.makedirs("data") 
+            os.makedirs("data")
         if not os.path.isfile(KUNDEN_DATEI):
-            pd.DataFrame(columns=["ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Tags",
-                                  "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4", "Bestelldatum"]).to_csv(KUNDEN_DATEI, index=False)
+            pd.DataFrame(columns=[
+                "ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Tags",
+                "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4", "Bestelldatum", "Erstgespräch"
+            ]).to_csv(KUNDEN_DATEI, index=False)
         if not os.path.isfile(KOMMENTAR_DATEI):
             pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
         return pd.read_csv(KUNDEN_DATEI), pd.read_csv(KOMMENTAR_DATEI)
@@ -73,6 +75,7 @@ if authentication_status:
         email = st.text_input("E-Mail")
         adresse = st.text_area("Adresse")
         produkt = st.selectbox("Produkt", ALLE_PRODUKTE)
+        erstgespraech = st.date_input("Erstgespräch")
         tags = st.multiselect("Tags", ALLE_TAGS)
 
         konto_ids = ["", "", "", ""]
@@ -100,7 +103,8 @@ if authentication_status:
                 "Konto ID2": konto_ids[1],
                 "Konto ID3": konto_ids[2],
                 "Konto ID4": konto_ids[3],
-                "Bestelldatum": str(bestelldatum) if produkt == "Expert-Advisor" else ""
+                "Bestelldatum": str(bestelldatum) if produkt == "Expert-Advisor" else "",
+                "Erstgespräch": str(erstgespraech)
             })
             if kommentar.strip():
                 speichere_kommentar(kunden_id, kommentar.strip())
