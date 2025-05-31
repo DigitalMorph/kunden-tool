@@ -72,7 +72,7 @@ if authentication_status:
 
     st.title("👤 Kundenmanagement Tool")
 
-    #kunden_df, kommentar_df = lade_daten()
+    kunden_df, kommentar_df = lade_daten() 
 
     st.sidebar.header("📅 Neuen Kunden anlegen")
     with st.sidebar.form("neuer_kunde"):
