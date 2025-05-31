@@ -83,18 +83,10 @@ if authentication_status:
         status = st.selectbox("Status", ALLE_STATUS)
         tags = st.multiselect("Tags", ALLE_TAGS)
 
-        konto_ids = ["", "", "", ""]
         bestelldatum = ""
         rechnung_geschickt = False
         rechnung_bezahlt = False
         zugang_digimember = False
-
-        if produkt == "Expert-Advisor":
-            st.markdown("**🔧 Expert Advisor Informationen**")
-            konto_ids[0] = st.text_input("Konto ID1")
-            konto_ids[1] = st.text_input("Konto ID2")
-            konto_ids[2] = st.text_input("Konto ID3")
-            konto_ids[3] = st.text_input("Konto ID4")
 
         if status == "gekauft":
             bestelldatum = st.date_input("Bestelldatum")
@@ -106,29 +98,35 @@ if authentication_status:
         submitted = st.form_submit_button("Speichern")
 
         if submitted and vorname and nachname and email:
-            kunde = {
-                "Vorname": vorname,
-                "Nachname": nachname,
-                "E-Mail": email,
-                "Adresse": adresse,
-                "Produkt": produkt,
-                "Status": status,
-                "Tags": ";".join(tags),
-                "Konto ID1": konto_ids[0],
-                "Konto ID2": konto_ids[1],
-                "Konto ID3": konto_ids[2],
-                "Konto ID4": konto_ids[3],
-                "Bestelldatum": str(bestelldatum) if status == "gekauft" else "",
-                "Erstgespräch": str(erstgespraech),
-                "Rechnung geschickt": rechnung_geschickt,
-                "Rechnung bezahlt": rechnung_bezahlt,
-                "Zugang DigiMember": zugang_digimember
-            }
-            speichere_kunde(kunde)
-            if kommentar.strip():
-                letzter_id = pd.read_csv(KUNDEN_DATEI)["ID"].max()
-                speichere_kommentar(letzter_id, kommentar.strip())
-            st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
+            if not kunden_df[(kunden_df["Vorname"] == vorname) & (kunden_df["Nachname"] == nachname)].empty:
+                st.warning("⚠️ Ein Kunde mit diesem Namen existiert bereits.")
+            else:
+                kunde = {
+                    "Vorname": vorname,
+                    "Nachname": nachname,
+                    "E-Mail": email,
+                    "Adresse": adresse,
+                    "Produkt": produkt,
+                    "Status": status,
+                    "Tags": ";".join(tags),
+                    "Konto ID1": "",
+                    "Konto ID2": "",
+                    "Konto ID3": "",
+                    "Konto ID4": "",
+                    "Bestelldatum": str(bestelldatum) if status == "gekauft" else "",
+                    "Erstgespräch": str(erstgespraech),
+                    "Rechnung geschickt": rechnung_geschickt,
+                    "Rechnung bezahlt": rechnung_bezahlt,
+                    "Zugang DigiMember": zugang_digimember
+                }
+                speichere_kunde(kunde)
+                if kommentar.strip():
+                    letzter_id = pd.read_csv(KUNDEN_DATEI)["ID"].max()
+                    speichere_kommentar(letzter_id, kommentar.strip())
+                st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
+
+    # Rest des Codes bleibt unverändert ...
+
 
     st.subheader("📋 Kundenübersicht")
     tag_filter = st.multiselect("🔎 Filter nach Tags", ALLE_TAGS)
