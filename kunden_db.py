@@ -52,12 +52,13 @@ if authentication_status:
         df = pd.read_csv(KUNDEN_DATEI)
         if kunden_id:
             df.loc[df["ID"] == kunden_id, list(kunde.keys())] = list(kunde.values())
+            neue_id = kunden_id
         else:
             neue_id = df["ID"].max() + 1 if not df.empty else 1
             kunde["ID"] = neue_id
             df = pd.concat([df, pd.DataFrame([kunde])])
         df.to_csv(KUNDEN_DATEI, index=False)
-        return kunde["ID"]
+        return neue_id
 
     def speichere_kommentar(kunden_id, kommentar_text):
         df = pd.read_csv(KOMMENTAR_DATEI)
@@ -91,9 +92,6 @@ if authentication_status:
 
         if status == "gekauft":
             bestelldatum = st.date_input("Bestelldatum")
-            rechnung_geschickt = st.checkbox("Rechnung geschickt")
-            rechnung_bezahlt = st.checkbox("Rechnung bezahlt")
-            zugang_digimember = st.checkbox("Zugang DigiMember angelegt")
 
         kommentar = st.text_area("Kommentar (optional)")
         submitted = st.form_submit_button("Speichern")
@@ -126,11 +124,11 @@ if authentication_status:
                 st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
                 st.experimental_rerun()
 
-    st.subheader("📋 Kundenübersicht")
     if not kunden_df.empty:
         for _, row in kunden_df.iterrows():
             with st.expander(f"{row['Vorname']} {row['Nachname']} – {row['Produkt']}"):
-                if st.button(f"Bearbeiten {row['ID']}"):
+                bearbeiten_button = st.button(f"Bearbeiten {row['ID']}")
+                if bearbeiten_button:
                     st.session_state[f"edit_{row['ID']}"] = not st.session_state.get(f"edit_{row['ID']}", False)
 
                 if st.session_state.get(f"edit_{row['ID']}", False):
@@ -157,6 +155,8 @@ if authentication_status:
                             rechnung_bezahlt = st.checkbox("Rechnung bezahlt", value=row.get("Rechnung bezahlt", False))
                             zugang_digimember = st.checkbox("Zugang DigiMember angelegt", value=row.get("Zugang DigiMember", False))
 
+                        kommentar_neu = st.text_area("Kommentar hinzufügen")
+
                         if st.form_submit_button("Speichern"):
                             kunde = {
                                 "Vorname": vorname,
@@ -177,11 +177,12 @@ if authentication_status:
                                 "Zugang DigiMember": zugang_digimember
                             }
                             speichere_kunde(kunde, kunden_id=row["ID"])
+                            if kommentar_neu.strip():
+                                speichere_kommentar(row["ID"], kommentar_neu.strip())
                             st.success("Daten aktualisiert.")
                             st.experimental_rerun()
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
-
 
 
     gefiltert = kunden_df.copy()
