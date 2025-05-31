@@ -81,7 +81,8 @@ if authentication_status:
 
         konto_ids = ["", "", "", ""]
         bestelldatum = ""
-        if produkt == "Expert-Advisor":
+        
+        if produkt.strip() == "Expert-Advisor":
             st.markdown("**🔧 Expert Advisor Informationen**")
             konto_ids[0] = st.text_input("Konto ID1")
             konto_ids[1] = st.text_input("Konto ID2")
