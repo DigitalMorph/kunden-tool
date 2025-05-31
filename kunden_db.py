@@ -33,7 +33,6 @@ if authentication_status:
 
     ALLE_TAGS = ["LIT2Trade", "LIT-EA", "LIT-Signal", "Interessent", "gekauft"]
     ALLE_PRODUKTE = ["kein Produkt", "Expert-Advisor", "LIT2Trade"]
-    ALLE_KAUFSTATUS = ["interesse", "gekauft"]
 
     def lade_daten():
         if not os.path.exists("data"):
@@ -42,8 +41,8 @@ if authentication_status:
             pd.DataFrame(columns=[
                 "ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Kaufstatus", "Tags",
                 "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4",
-                "Bestelldatum", "Erstgespräch",
-                "Rechnung geschickt", "Rechnung bezahlt", "Zugang DigiMember"
+                "Bestelldatum", "Rechnung geschickt", "Rechnung bezahlt", "DigiMember Zugang",
+                "Erstgespräch"
             ]).to_csv(KUNDEN_DATEI, index=False)
         if not os.path.isfile(KOMMENTAR_DATEI):
             pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
@@ -77,11 +76,9 @@ if authentication_status:
         nachname = st.text_input("Nachname")
         email = st.text_input("E-Mail")
         adresse = st.text_area("Adresse")
-        erstgespraech = st.date_input("Erstgespräch")
-
-        produkt = st.selectbox("Produkt", options=ALLE_PRODUKTE, key="produkt_select")
-        kaufstatus = st.selectbox("Kaufstatus", options=ALLE_KAUFSTATUS, key="kaufstatus_select")
-
+        erstgespraech = st.date_input("🗓 Erstgespräch")
+        produkt = st.selectbox("Produkt", ALLE_PRODUKTE)
+        kaufstatus = st.selectbox("Kaufstatus", ["interesse", "gekauft"])
         tags = st.multiselect("Tags", ALLE_TAGS)
 
         konto_ids = ["", "", "", ""]
@@ -97,19 +94,11 @@ if authentication_status:
             konto_ids[2] = st.text_input("Konto ID3")
             konto_ids[3] = st.text_input("Konto ID4")
 
-        if produkt == "Expert-Advisor":
-            st.markdown("**🔧 Expert Advisor Informationen**")
-            konto_ids[0] = st.text_input("Konto ID1")
-            konto_ids[1] = st.text_input("Konto ID2")
-            konto_ids[2] = st.text_input("Konto ID3")
-            konto_ids[3] = st.text_input("Konto ID4")
-
-            if kaufstatus == "gekauft":
-                bestelldatum = st.date_input("Bestelldatum")
-                rechnung_geschickt = st.checkbox("✅ Rechnung geschickt")
-                rechnung_bezahlt = st.checkbox("💶 Rechnung bezahlt")
-                zugang_digimember = st.checkbox("🔐 Zugang DigiMember angelegt")
-
+        if kaufstatus == "gekauft":
+            bestelldatum = st.date_input("📦 Bestelldatum")
+            rechnung_geschickt = st.checkbox("✅ Rechnung geschickt")
+            rechnung_bezahlt = st.checkbox("💶 Rechnung bezahlt")
+            zugang_digimember = st.checkbox("🔐 Zugang DigiMember angelegt")
 
         kommentar = st.text_area("Kommentar (optional)")
         submitted = st.form_submit_button("Speichern")
@@ -128,10 +117,10 @@ if authentication_status:
                 "Konto ID3": konto_ids[2],
                 "Konto ID4": konto_ids[3],
                 "Bestelldatum": str(bestelldatum) if kaufstatus == "gekauft" else "",
-                "Erstgespräch": str(erstgespraech),
                 "Rechnung geschickt": rechnung_geschickt,
                 "Rechnung bezahlt": rechnung_bezahlt,
-                "Zugang DigiMember": zugang_digimember
+                "DigiMember Zugang": zugang_digimember,
+                "Erstgespräch": str(erstgespraech)
             })
             if kommentar.strip():
                 speichere_kommentar(kunden_id, kommentar.strip())
