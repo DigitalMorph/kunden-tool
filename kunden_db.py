@@ -102,7 +102,19 @@ if authentication_status:
     st.dataframe(gefiltert)
 
     st.subheader("💬 Kommentarhistorie")
-    kunden_auswahl = st.selectbox("Kunde auswählen", kunden_df["ID"].astype(str) + " – " + kunden_df["Vorname"] + " " + kunden_df["Nachname"])
-    ausgewählte_id = int(kunden_auswahl.split("–")[0].strip())
-    kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id]
-    st.write(kommentare_kunde.sort_values("Datum", ascending=False).reset_index(drop=True))
+    if not kunden_df.empty:
+        kunden_auswahl = st.selectbox(
+            "Kunde auswählen",
+            kunden_df["ID"].astype(str) + " – " + kunden_df["Vorname"] + " " + kunden_df["Nachname"]
+        )
+
+        if kunden_auswahl:
+            try:
+                ausgewählte_id = int(kunden_auswahl.split("–")[0].strip())
+                kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id]
+                st.write(kommentare_kunde.sort_values("Datum", ascending=False).reset_index(drop=True))
+            except Exception as e:
+                st.error(f"Fehler bei der Auswahl des Kunden: {e}")
+    else:
+        st.info("❕ Noch keine Kunden vorhanden.")
+
