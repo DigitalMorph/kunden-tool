@@ -92,9 +92,6 @@ if authentication_status:
 
         if status == "gekauft":
             bestelldatum = st.date_input("Bestelldatum")
-            rechnung_geschickt = st.checkbox("Rechnung geschickt")
-            rechnung_bezahlt = st.checkbox("Rechnung bezahlt")
-            zugang_digimember = st.checkbox("Zugang DigiMember angelegt")
 
         kommentar = st.text_area("Kommentar (optional)")
         submitted = st.form_submit_button("Speichern")
@@ -131,7 +128,8 @@ if authentication_status:
     if not kunden_df.empty:
         for _, row in kunden_df.iterrows():
             with st.expander(f"{row['Vorname']} {row['Nachname']} – {row['Produkt']}"):
-                if st.button(f"Bearbeiten {row['ID']}"):
+                bearbeiten_button = st.button(f"Bearbeiten {row['ID']}")
+                if bearbeiten_button:
                     st.session_state[f"edit_{row['ID']}"] = not st.session_state.get(f"edit_{row['ID']}", False)
 
                 if st.session_state.get(f"edit_{row['ID']}", False):
@@ -186,6 +184,7 @@ if authentication_status:
                             st.experimental_rerun()
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
+
 
 
 
