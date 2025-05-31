@@ -32,13 +32,14 @@ if authentication_status:
     KOMMENTAR_DATEI = "data/kommentare.csv"
 
     ALLE_TAGS = ["LIT2Trade", "LIT-EA", "LIT-Signal", "Interessent", "gekauft"]
-    ALLE_PRODUKTE = ["Kein Produkt", "Telegram-Signale", "Expert Advisor", "Komplettpaket"]
+    ALLE_PRODUKTE = ["kein Produkt", "Expert-Advisor", "LIT2Trade"]
 
     def lade_daten():
         if not os.path.exists("data"):
-            os.makedirs("data")
+            os.makedirs("data") 
         if not os.path.isfile(KUNDEN_DATEI):
-            pd.DataFrame(columns=["ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Tags"]).to_csv(KUNDEN_DATEI, index=False)
+            pd.DataFrame(columns=["ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Tags",
+                                  "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4", "Bestelldatum"]).to_csv(KUNDEN_DATEI, index=False)
         if not os.path.isfile(KOMMENTAR_DATEI):
             pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
         return pd.read_csv(KUNDEN_DATEI), pd.read_csv(KOMMENTAR_DATEI)
@@ -73,6 +74,17 @@ if authentication_status:
         adresse = st.text_area("Adresse")
         produkt = st.selectbox("Produkt", ALLE_PRODUKTE)
         tags = st.multiselect("Tags", ALLE_TAGS)
+
+        konto_ids = ["", "", "", ""]
+        bestelldatum = ""
+        if produkt == "Expert-Advisor":
+            st.markdown("**🔧 Expert Advisor Informationen**")
+            konto_ids[0] = st.text_input("Konto ID1")
+            konto_ids[1] = st.text_input("Konto ID2")
+            konto_ids[2] = st.text_input("Konto ID3")
+            konto_ids[3] = st.text_input("Konto ID4")
+            bestelldatum = st.date_input("Bestelldatum")
+
         kommentar = st.text_area("Kommentar (optional)")
         submitted = st.form_submit_button("Speichern")
 
@@ -83,7 +95,12 @@ if authentication_status:
                 "E-Mail": email,
                 "Adresse": adresse,
                 "Produkt": produkt,
-                "Tags": ";".join(tags)
+                "Tags": ";".join(tags),
+                "Konto ID1": konto_ids[0],
+                "Konto ID2": konto_ids[1],
+                "Konto ID3": konto_ids[2],
+                "Konto ID4": konto_ids[3],
+                "Bestelldatum": str(bestelldatum) if produkt == "Expert-Advisor" else ""
             })
             if kommentar.strip():
                 speichere_kommentar(kunden_id, kommentar.strip())
@@ -102,6 +119,7 @@ if authentication_status:
     st.dataframe(gefiltert)
 
     st.subheader("💬 Kommentarhistorie")
+
     if not kunden_df.empty:
         kunden_auswahl = st.selectbox(
             "Kunde auswählen",
@@ -117,4 +135,3 @@ if authentication_status:
                 st.error(f"Fehler bei der Auswahl des Kunden: {e}")
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
-
