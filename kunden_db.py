@@ -33,28 +33,30 @@ if authentication_status:
 
     ALLE_TAGS = ["LIT2Trade", "LIT-EA", "LIT-Signal", "Interessent", "gekauft"]
     ALLE_PRODUKTE = ["kein Produkt", "Expert-Advisor", "LIT2Trade"]
+    ALLE_STATUS = ["interesse", "gekauft"]
 
     def lade_daten():
         if not os.path.exists("data"):
             os.makedirs("data")
         if not os.path.isfile(KUNDEN_DATEI):
             pd.DataFrame(columns=[
-                "ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Kaufstatus", "Tags",
-                "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4",
-                "Bestelldatum", "Rechnung geschickt", "Rechnung bezahlt", "DigiMember Zugang",
-                "Erstgespräch"
+                "ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Status", "Tags",
+                "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4", "Bestelldatum", "Erstgespräch",
+                "Rechnung geschickt", "Rechnung bezahlt", "Zugang DigiMember"
             ]).to_csv(KUNDEN_DATEI, index=False)
         if not os.path.isfile(KOMMENTAR_DATEI):
             pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
         return pd.read_csv(KUNDEN_DATEI), pd.read_csv(KOMMENTAR_DATEI)
 
-    def speichere_kunde(kunde):
+    def speichere_kunde(kunde, kunden_id=None):
         df = pd.read_csv(KUNDEN_DATEI)
-        neue_id = df["ID"].max() + 1 if not df.empty else 1
-        kunde["ID"] = neue_id
-        df = pd.concat([df, pd.DataFrame([kunde])])
+        if kunden_id:
+            df.loc[df["ID"] == kunden_id, list(kunde.keys())] = list(kunde.values())
+        else:
+            neue_id = df["ID"].max() + 1 if not df.empty else 1
+            kunde["ID"] = neue_id
+            df = pd.concat([df, pd.DataFrame([kunde])])
         df.to_csv(KUNDEN_DATEI, index=False)
-        return neue_id
 
     def speichere_kommentar(kunden_id, kommentar_text):
         df = pd.read_csv(KOMMENTAR_DATEI)
@@ -76,9 +78,9 @@ if authentication_status:
         nachname = st.text_input("Nachname")
         email = st.text_input("E-Mail")
         adresse = st.text_area("Adresse")
-        erstgespraech = st.date_input("🗓 Erstgespräch")
+        erstgespraech = st.date_input("Erstgespräch")
         produkt = st.selectbox("Produkt", ALLE_PRODUKTE)
-        kaufstatus = st.selectbox("Kaufstatus", ["interesse", "gekauft"])
+        status = st.selectbox("Status", ALLE_STATUS)
         tags = st.multiselect("Tags", ALLE_TAGS)
 
         konto_ids = ["", "", "", ""]
@@ -94,36 +96,38 @@ if authentication_status:
             konto_ids[2] = st.text_input("Konto ID3")
             konto_ids[3] = st.text_input("Konto ID4")
 
-        if kaufstatus == "gekauft":
-            bestelldatum = st.date_input("📦 Bestelldatum")
-            rechnung_geschickt = st.checkbox("✅ Rechnung geschickt")
-            rechnung_bezahlt = st.checkbox("💶 Rechnung bezahlt")
-            zugang_digimember = st.checkbox("🔐 Zugang DigiMember angelegt")
+        if status == "gekauft":
+            bestelldatum = st.date_input("Bestelldatum")
+            rechnung_geschickt = st.checkbox("Rechnung geschickt")
+            rechnung_bezahlt = st.checkbox("Rechnung bezahlt")
+            zugang_digimember = st.checkbox("Zugang DigiMember angelegt")
 
         kommentar = st.text_area("Kommentar (optional)")
         submitted = st.form_submit_button("Speichern")
 
         if submitted and vorname and nachname and email:
-            kunden_id = speichere_kunde({
+            kunde = {
                 "Vorname": vorname,
                 "Nachname": nachname,
                 "E-Mail": email,
                 "Adresse": adresse,
                 "Produkt": produkt,
-                "Kaufstatus": kaufstatus,
+                "Status": status,
                 "Tags": ";".join(tags),
                 "Konto ID1": konto_ids[0],
                 "Konto ID2": konto_ids[1],
                 "Konto ID3": konto_ids[2],
                 "Konto ID4": konto_ids[3],
-                "Bestelldatum": str(bestelldatum) if kaufstatus == "gekauft" else "",
+                "Bestelldatum": str(bestelldatum) if status == "gekauft" else "",
+                "Erstgespräch": str(erstgespraech),
                 "Rechnung geschickt": rechnung_geschickt,
                 "Rechnung bezahlt": rechnung_bezahlt,
-                "DigiMember Zugang": zugang_digimember,
-                "Erstgespräch": str(erstgespraech)
-            })
+                "Zugang DigiMember": zugang_digimember
+            }
+            speichere_kunde(kunde)
             if kommentar.strip():
-                speichere_kommentar(kunden_id, kommentar.strip())
+                letzter_id = pd.read_csv(KUNDEN_DATEI)["ID"].max()
+                speichere_kommentar(letzter_id, kommentar.strip())
             st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
 
     st.subheader("📋 Kundenübersicht")
@@ -138,33 +142,56 @@ if authentication_status:
 
     st.dataframe(gefiltert)
 
-    st.subheader("💬 Kommentarhistorie")
-
+    st.subheader("✏️ Kundendaten bearbeiten")
     if not kunden_df.empty:
-        kunden_auswahl = st.selectbox(
-            "Kunde auswählen",
+        bearbeite_kunde = st.selectbox(
+            "Kunden-ID auswählen",
             kunden_df["ID"].astype(str) + " – " + kunden_df["Vorname"] + " " + kunden_df["Nachname"]
         )
+        if bearbeite_kunde:
+            ausgewählte_id = int(bearbeite_kunde.split("–")[0].strip())
+            kunde = kunden_df[kunden_df["ID"] == ausgewählte_id].iloc[0]
 
-        if kunden_auswahl:
-            try:
-                ausgewählte_id = int(kunden_auswahl.split("–")[0].strip())
-                kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id]
-                st.markdown("#### Bisherige Kommentare")
-                st.dataframe(kommentare_kunde.sort_values("Datum", ascending=False).reset_index(drop=True))
+            with st.form("kunde_bearbeiten"):
+                kunde_dict = {}
+                kunde_dict["Vorname"] = st.text_input("Vorname", value=kunde["Vorname"])
+                kunde_dict["Nachname"] = st.text_input("Nachname", value=kunde["Nachname"])
+                kunde_dict["E-Mail"] = st.text_input("E-Mail", value=kunde["E-Mail"])
+                kunde_dict["Adresse"] = st.text_area("Adresse", value=kunde["Adresse"])
+                kunde_dict["Erstgespräch"] = st.date_input("Erstgespräch", value=pd.to_datetime(kunde["Erstgespräch"]))
+                kunde_dict["Produkt"] = st.selectbox("Produkt", ALLE_PRODUKTE, index=ALLE_PRODUKTE.index(kunde["Produkt"]))
+                kunde_dict["Status"] = st.selectbox("Status", ALLE_STATUS, index=ALLE_STATUS.index(kunde["Status"]))
+                kunde_dict["Tags"] = ";".join(st.multiselect("Tags", ALLE_TAGS, default=kunde["Tags"].split(";") if pd.notna(kunde["Tags"]) else []))
 
-                st.markdown("#### Neuen Kommentar hinzufügen")
-                neuer_kommentar = st.text_area("Kommentar eingeben")
-                if st.button("💾 Kommentar speichern"):
-                    if neuer_kommentar.strip():
-                        speichere_kommentar(ausgewählte_id, neuer_kommentar.strip())
-                        st.success("Kommentar erfolgreich gespeichert.")
-                        st.experimental_rerun()
-                    else:
-                        st.warning("Bitte einen Kommentar eingeben.")
+                if kunde_dict["Produkt"] == "Expert-Advisor":
+                    kunde_dict["Konto ID1"] = st.text_input("Konto ID1", value=kunde["Konto ID1"])
+                    kunde_dict["Konto ID2"] = st.text_input("Konto ID2", value=kunde["Konto ID2"])
+                    kunde_dict["Konto ID3"] = st.text_input("Konto ID3", value=kunde["Konto ID3"])
+                    kunde_dict["Konto ID4"] = st.text_input("Konto ID4", value=kunde["Konto ID4"])
+                else:
+                    kunde_dict["Konto ID1"] = kunde_dict["Konto ID2"] = kunde_dict["Konto ID3"] = kunde_dict["Konto ID4"] = ""
 
-            except Exception as e:
-                st.error(f"Fehler bei der Auswahl des Kunden: {e}")
+                if kunde_dict["Status"] == "gekauft":
+                    kunde_dict["Bestelldatum"] = st.date_input("Bestelldatum", value=pd.to_datetime(kunde["Bestelldatum"]) if pd.notna(kunde["Bestelldatum"]) else datetime.today())
+                    kunde_dict["Rechnung geschickt"] = st.checkbox("Rechnung geschickt", value=bool(kunde["Rechnung geschickt"]))
+                    kunde_dict["Rechnung bezahlt"] = st.checkbox("Rechnung bezahlt", value=bool(kunde["Rechnung bezahlt"]))
+                    kunde_dict["Zugang DigiMember"] = st.checkbox("Zugang DigiMember angelegt", value=bool(kunde["Zugang DigiMember"]))
+                else:
+                    kunde_dict["Bestelldatum"] = ""
+                    kunde_dict["Rechnung geschickt"] = kunde_dict["Rechnung bezahlt"] = kunde_dict["Zugang DigiMember"] = False
+
+                kommentar_neu = st.text_area("Neuen Kommentar hinzufügen")
+                speichern = st.form_submit_button("Änderungen speichern")
+
+                if speichern:
+                    speichere_kunde(kunde_dict, kunden_id=ausgewählte_id)
+                    if kommentar_neu.strip():
+                        speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
+                    st.success("Änderungen gespeichert.")
+
+            kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id]
+            st.write("💬 Kommentare")
+            st.write(kommentare_kunde.sort_values("Datum", ascending=False).reset_index(drop=True))
+
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
-
