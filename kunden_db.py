@@ -184,13 +184,15 @@ if authentication_status:
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
 
+    st.subheader("🔍 Kunden filtern (optional)")
+    tag_filter = st.multiselect("Tags", ALLE_TAGS)
+    produkt_filter = st.multiselect("Produkt", ALLE_PRODUKTE)
 
     gefiltert = kunden_df.copy()
     if tag_filter:
         gefiltert = gefiltert[gefiltert["Tags"].fillna("").str.contains("|".join(tag_filter))]
     if produkt_filter:
         gefiltert = gefiltert[gefiltert["Produkt"].isin(produkt_filter)]
-
     st.dataframe(gefiltert)
 
     st.subheader("✏️ Kundendaten bearbeiten")
