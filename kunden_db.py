@@ -189,6 +189,17 @@ if authentication_status:
 
                 kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id].sort_values("Datum", ascending=False).reset_index(drop=True)
                 st.markdown("""<style>.kommentar-box {white-space: pre-wrap; border: 1px solid #ddd; padding: 0px 8px 6px 8px; margin-bottom: 4px; border-radius: 4px; background-color: #f9f9f9; font-size: 13px; line-height: 1.0;} .kommentar-datum {font-weight: bold; color: #1b3061; margin: 0;} .kommentar-text {margin: 0;}</style>""", unsafe_allow_html=True)
+
+                # Kunden löschen
+                if st.button("🗑️ Kundenprofil löschen"):
+                    kunden_df = kunden_df[kunden_df["ID"] != ausgewählte_id]
+                    kunden_df.to_csv(KUNDEN_DATEI, index=False)
+                    kommentar_df = kommentar_df[kommentar_df["Kunden-ID"] != ausgewählte_id]
+                    kommentar_df.to_csv(KOMMENTAR_DATEI, index=False)
+                    st.success("Kunde wurde gelöscht.")
+                    st.experimental_rerun()
+
+
                 for _, row in kommentare_kunde.iterrows():
                     st.markdown(f"""
                         <div class='kommentar-box'>
@@ -200,19 +211,3 @@ if authentication_status:
         st.info("❕ Noch keine Kunden vorhanden.")
 
 
-    # Kunden löschen
-    if st.button("🗑️ Kundenprofil löschen"):
-        kunden_df = kunden_df[kunden_df["ID"] != ausgewählte_id]
-        kunden_df.to_csv(KUNDEN_DATEI, index=False)
-        kommentar_df = kommentar_df[kommentar_df["Kunden-ID"] != ausgewählte_id]
-        kommentar_df.to_csv(KOMMENTAR_DATEI, index=False)
-        st.success("Kunde wurde gelöscht.")
-        st.experimental_rerun()
-
-    for _, row in kommentare_kunde.iterrows():
-        st.markdown(f"""
-            <div class='kommentar-box'>
-                <div class='kommentar-datum'>{row['Datum']}</div>
-                <div class='kommentar-text'>{row['Kommentar']}</div>
-            </div>
-        """, unsafe_allow_html=True)
