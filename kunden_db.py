@@ -32,6 +32,7 @@ if authentication_status:
     # Datei-Pfade
     KUNDEN_DATEI = "data/kunden.csv"
     KOMMENTAR_DATEI = "data/kommentare.csv"
+    LOG_DATEI = "data/logs.csv"
 
     ALLE_TAGS = ["LIT2Trade", "LIT-EA", "LIT-Signal", "Interessent", "gekauft"]
     ALLE_PRODUKTE = ["kein Produkt", "Expert-Advisor", "LIT2Trade"]
@@ -48,6 +49,8 @@ if authentication_status:
             ]).to_csv(KUNDEN_DATEI, index=False)
         if not os.path.isfile(KOMMENTAR_DATEI):
             pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
+        if not os.path.isfile(LOG_DATEI):
+            pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID"]).to_csv(LOG_DATEI, index=False)
         return pd.read_csv(KUNDEN_DATEI), pd.read_csv(KOMMENTAR_DATEI)
 
     def speichere_kunde(kunde, kunden_id=None):
@@ -71,6 +74,17 @@ if authentication_status:
         }
         df = pd.concat([df, pd.DataFrame([neuer_kommentar])])
         df.to_csv(KOMMENTAR_DATEI, index=False)
+
+    def log_aktion(aktion, kunden_id):
+        df = pd.read_csv(LOG_DATEI)
+        neuer_log = {
+            "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "Benutzer": name,
+            "Aktion": aktion,
+            "Kunden-ID": kunden_id
+        }
+        df = pd.concat([df, pd.DataFrame([neuer_log])])
+        df.to_csv(LOG_DATEI, index=False)
 
     st.title("👤 Kundenmanagement Tool")
 
@@ -123,6 +137,7 @@ if authentication_status:
                 neue_id = speichere_kunde(kunde)
                 if kommentar.strip():
                     speichere_kommentar(neue_id, kommentar.strip())
+                log_aktion("Neu angelegt", neue_id)
                 st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
                 st.experimental_rerun()
 
@@ -186,11 +201,12 @@ if authentication_status:
                         speichere_kunde(kunde_dict, kunden_id=ausgewählte_id)
                         if kommentar_neu.strip():
                             speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
+                        log_aktion("Bearbeitet", ausgewählte_id)
                         st.success("Änderungen gespeichert.")
                         st.experimental_rerun()
 
                 kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id].sort_values("Datum", ascending=False).reset_index(drop=True)
-                
+
                 st.markdown("""<style>
                     .kommentar-box {
                         white-space: pre-wrap;
@@ -213,48 +229,15 @@ if authentication_status:
                     .block-container {
                         padding-left: 1rem !important;
                         padding-right: 1rem !important;
-                        
                     }
                 </style>""", unsafe_allow_html=True)
 
-
-                # Änderung durch Benutzer dokumentieren
-                log_datei = "data/logs.csv"
-                if not os.path.exists("data"):
-                    os.makedirs("data")
-                if not os.path.isfile(log_datei):
-                    pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID"]).to_csv(log_datei, index=False)
-
-                # Kunden speichern und Änderung loggen
-                if speichern:
-                    speichere_kunde(kunde_dict, kunden_id=ausgewählte_id)
-                    if kommentar_neu.strip():
-                        speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
-                    log_df = pd.read_csv(log_datei)
-                    log_df = pd.concat([log_df, pd.DataFrame([{
-                        "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "Benutzer": name,
-                        "Aktion": "Bearbeitet",
-                        "Kunden-ID": ausgewählte_id
-                    }])])
-                    log_df.to_csv(log_datei, index=False)
-                    st.success("Änderungen gespeichert.")
-                    st.experimental_rerun()
-
-                # Kunden löschen
                 if st.button("🗑️ Kundenprofil löschen"):
                     kunden_df = kunden_df[kunden_df["ID"] != ausgewählte_id]
                     kunden_df.to_csv(KUNDEN_DATEI, index=False)
                     kommentar_df = kommentar_df[kommentar_df["Kunden-ID"] != ausgewählte_id]
                     kommentar_df.to_csv(KOMMENTAR_DATEI, index=False)
-                    log_df = pd.read_csv(log_datei)
-                    log_df = pd.concat([log_df, pd.DataFrame([{
-                        "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "Benutzer": name,
-                        "Aktion": "Gelöscht",
-                        "Kunden-ID": ausgewählte_id
-                    }])])
-                    log_df.to_csv(log_datei, index=False)
+                    log_aktion("Gelöscht", ausgewählte_id)
                     st.success("Kunde wurde gelöscht.")
                     st.experimental_rerun()
 
@@ -266,15 +249,12 @@ if authentication_status:
                         </div>
                     """, unsafe_allow_html=True)
 
-                # Log-Ansicht anzeigen
                 st.subheader("📋 Änderungsprotokoll")
                 try:
-                    logs_df = pd.read_csv(log_datei)
+                    logs_df = pd.read_csv(LOG_DATEI)
                     logs_df = logs_df.sort_values("Datum", ascending=False).reset_index(drop=True)
                     st.dataframe(logs_df)
                 except Exception as e:
                     st.info("Noch keine Logs vorhanden oder Datei konnte nicht geladen werden.")
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
-
-
