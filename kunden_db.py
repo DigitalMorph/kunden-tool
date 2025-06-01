@@ -191,7 +191,7 @@ if authentication_status:
                 st.markdown("""<style>
                     .kommentar-box {
                         white-space: pre-wrap;
-                        border: 1px solid #ddd;
+                        border: 1px solid #ddd; 
                         padding: 0px 8px 6px 8px;
                         margin-bottom: 4px;
                         border-radius: 4px;
