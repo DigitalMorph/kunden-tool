@@ -108,6 +108,8 @@ if authentication_status:
         df.to_csv(LOG_DATEI, index=False)
 
 
+    import glob
+
     def erzeuge_backup():
         if not os.path.exists("backup"):
             os.makedirs("backup")
@@ -117,11 +119,20 @@ if authentication_status:
         kommentare_backup = f"backup/{timestamp}_kommentare.csv"
 
         try:
+            # Backup speichern
             pd.read_csv(KUNDEN_DATEI).to_csv(kunden_backup, index=False)
             pd.read_csv(KOMMENTAR_DATEI).to_csv(kommentare_backup, index=False)
             st.sidebar.info(f"📁 Backup erstellt: {timestamp}")
+
+            # Aufräumen: Nur die 20 neuesten behalten
+            for prefix in ["kunden", "kommentare"]:
+                backups = sorted(glob.glob(f"backup/*_{prefix}.csv"), reverse=True)
+                for old_file in backups[20:]:
+                    os.remove(old_file)
+
         except Exception as e:
             st.warning(f"⚠️ Backup fehlgeschlagen: {e}")
+
 
 
     st.title("👤 Kundenmanagement Tool")
