@@ -198,3 +198,21 @@ if authentication_status:
                     """, unsafe_allow_html=True)
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
+
+
+    # Kunden löschen
+    if st.button("🗑️ Kundenprofil löschen"):
+        kunden_df = kunden_df[kunden_df["ID"] != ausgewählte_id]
+        kunden_df.to_csv(KUNDEN_DATEI, index=False)
+        kommentar_df = kommentar_df[kommentar_df["Kunden-ID"] != ausgewählte_id]
+        kommentar_df.to_csv(KOMMENTAR_DATEI, index=False)
+        st.success("Kunde wurde gelöscht.")
+        st.experimental_rerun()
+
+    for _, row in kommentare_kunde.iterrows():
+        st.markdown(f"""
+            <div class='kommentar-box'>
+                <div class='kommentar-datum'>{row['Datum']}</div>
+                <div class='kommentar-text'>{row['Kommentar']}</div>
+            </div>
+        """, unsafe_allow_html=True)
