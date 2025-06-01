@@ -204,6 +204,46 @@ if authentication_status:
     st.sidebar.markdown("---")
     st.sidebar.subheader("📦 Backup wiederherstellen")
 
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("⬇️ Backup herunterladen")
+
+    kunden_df = pd.read_csv(KUNDEN_DATEI)
+    kommentar_df = pd.read_csv(KOMMENTAR_DATEI)
+
+    st.sidebar.download_button(
+        label="📥 Kunden-CSV herunterladen",
+        data=kunden_df.to_csv(index=False).encode("utf-8"),
+        file_name="kunden_backup.csv",
+        mime="text/csv"
+    )
+
+    st.sidebar.download_button(
+        label="📥 Kommentare-CSV herunterladen",
+        data=kommentar_df.to_csv(index=False).encode("utf-8"),
+        file_name="kommentare_backup.csv",
+        mime="text/csv"
+    )
+
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("⬆️ Backup hochladen & wiederherstellen")
+
+    uploaded_kunden = st.sidebar.file_uploader("Kunden-CSV auswählen", type="csv", key="upload_kunden")
+    uploaded_kommentare = st.sidebar.file_uploader("Kommentare-CSV auswählen", type="csv", key="upload_kommentare")
+
+    if st.sidebar.button("🔄 Backup aus Upload wiederherstellen"):
+        try:
+            if uploaded_kunden:
+                df_k = pd.read_csv(uploaded_kunden)
+                df_k.to_csv(KUNDEN_DATEI, index=False)
+            if uploaded_kommentare:
+                df_c = pd.read_csv(uploaded_kommentare)
+                df_c.to_csv(KOMMENTAR_DATEI, index=False)
+            erzeuge_backup()  # optional, um nach Upload gleich ein neues Backup zu haben
+            st.sidebar.success("Upload erfolgreich wiederhergestellt.")
+            st.experimental_rerun()
+        except Exception as e:
+            st.sidebar.error(f"❌ Fehler beim Wiederherstellen: {e}")
+
     # Alle Kunden-Backup-Dateien laden
     backup_files_kunden = sorted(glob.glob("backup/*_kunden.csv"), reverse=True)
 
