@@ -216,14 +216,48 @@ if authentication_status:
                         
                     }
                 </style>""", unsafe_allow_html=True)
+
+
+                # Änderung durch Benutzer dokumentieren
+                log_datei = "data/logs.csv"
+                if not os.path.exists("data"):
+                    os.makedirs("data")
+                if not os.path.isfile(log_datei):
+                    pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID"]).to_csv(log_datei, index=False)
+
+                # Kunden speichern und Änderung loggen
+                if speichern:
+                    speichere_kunde(kunde_dict, kunden_id=ausgewählte_id)
+                    if kommentar_neu.strip():
+                        speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
+                    log_df = pd.read_csv(log_datei)
+                    log_df = pd.concat([log_df, pd.DataFrame([{
+                        "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "Benutzer": name,
+                        "Aktion": "Bearbeitet",
+                        "Kunden-ID": ausgewählte_id
+                    }])])
+                    log_df.to_csv(log_datei, index=False)
+                    st.success("Änderungen gespeichert.")
+                    st.experimental_rerun()
+
                 # Kunden löschen
                 if st.button("🗑️ Kundenprofil löschen"):
                     kunden_df = kunden_df[kunden_df["ID"] != ausgewählte_id]
                     kunden_df.to_csv(KUNDEN_DATEI, index=False)
                     kommentar_df = kommentar_df[kommentar_df["Kunden-ID"] != ausgewählte_id]
                     kommentar_df.to_csv(KOMMENTAR_DATEI, index=False)
+                    log_df = pd.read_csv(log_datei)
+                    log_df = pd.concat([log_df, pd.DataFrame([{
+                        "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "Benutzer": name,
+                        "Aktion": "Gelöscht",
+                        "Kunden-ID": ausgewählte_id
+                    }])])
+                    log_df.to_csv(log_datei, index=False)
                     st.success("Kunde wurde gelöscht.")
                     st.experimental_rerun()
+
 
 
                 for _, row in kommentare_kunde.iterrows():
