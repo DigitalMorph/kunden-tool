@@ -1,9 +1,14 @@
 credentials:
   usernames:
-    max:
+    user1:
       name: Max Mustermann
       password: '$2a$12$Rxz6FXub7bKRhYwXMZMjlOCj.Q1/yR43cFHyxSDJ1MEP93n0mFmxq'
-
+    user2:
+      name: Jannis 
+      password: '$2a$12$B7TdvVWtb4EbuAHZ6TCkJOjV/98HOM4HZ8/YQ99Sx1ULOhu43IcR2'
+    user3:
+      name: Achim
+      password: '$2a$12$VUWUqaUDj6Wz85hXxZ1Jyu2zShyb1gL6JzXVait1bz4/05po/pyOa'
 cookie:
   name: kunden_tool
   key: abcdef123456
