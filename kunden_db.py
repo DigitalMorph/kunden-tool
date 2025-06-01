@@ -208,8 +208,9 @@ if authentication_status:
                         margin: 0;
                     }
                     .block-container {
-                        padding-left: 5rem !important;
-                        padding-right: 5rem !important;
+                        padding-left: 1rem !important;
+                        padding-right: 1rem !important;
+                        max-width: 100% !important;
                     }
                 </style>""", unsafe_allow_html=True)
                 # Kunden löschen
