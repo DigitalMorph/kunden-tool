@@ -50,7 +50,7 @@ if authentication_status:
         if not os.path.isfile(KOMMENTAR_DATEI):
             pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
         if not os.path.isfile(LOG_DATEI):
-            pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID"]).to_csv(LOG_DATEI, index=False)
+            pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID", "Details"]).to_csv(LOG_DATEI, index=False)
         return pd.read_csv(KUNDEN_DATEI), pd.read_csv(KOMMENTAR_DATEI)
 
     def speichere_kunde(kunde, kunden_id=None):
@@ -75,16 +75,18 @@ if authentication_status:
         df = pd.concat([df, pd.DataFrame([neuer_kommentar])])
         df.to_csv(KOMMENTAR_DATEI, index=False)
 
-    def log_aktion(aktion, kunden_id):
-        df = pd.read_csv(LOG_DATEI)
-        neuer_log = {
+        def log_aktion(aktion, kunden_id, details=""):
+            df = pd.read_csv(LOG_DATEI)
+            neuer_log = {
             "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "Benutzer": name,
             "Aktion": aktion,
-            "Kunden-ID": kunden_id
+            "Kunden-ID": kunden_id,
+            "Details": details
         }
         df = pd.concat([df, pd.DataFrame([neuer_log])])
         df.to_csv(LOG_DATEI, index=False)
+
 
     st.title("👤 Kundenmanagement Tool")
 
@@ -198,12 +200,19 @@ if authentication_status:
                     speichern = st.form_submit_button("Änderungen speichern")
 
                     if speichern:
+                        aenderungen = []
+                        for key in kunde_dict:
+                            alt = str(kunde[key]) if key in kunde else ""
+                            neu = str(kunde_dict[key])
+                            if alt != neu:
+                                aenderungen.append(f"{key}: '{alt}' → '{neu}'")
+                        aenderungs_text = "; ".join(aenderungen) if aenderungen else "Keine Änderungen"
+
                         speichere_kunde(kunde_dict, kunden_id=ausgewählte_id)
-                        if kommentar_neu.strip():
-                            speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
-                        log_aktion("Bearbeitet", ausgewählte_id)
-                        st.success("Änderungen gespeichert.")
+                        log_aktion("Bearbeitet", ausgewählte_id, aenderungs_text)
+                        st.success("Kunde wurde aktualisiert.")
                         st.experimental_rerun()
+
 
                 kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id].sort_values("Datum", ascending=False).reset_index(drop=True)
 
