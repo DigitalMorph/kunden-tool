@@ -213,7 +213,7 @@ if authentication_status:
                     .block-container {
                         padding-left: 1rem !important;
                         padding-right: 1rem !important;
-                        max-width: 100% !important;
+                        
                     }
                 </style>""", unsafe_allow_html=True)
                 # Kunden löschen
