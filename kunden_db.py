@@ -8,16 +8,21 @@ import yaml
 import shutil
 import streamlit_authenticator as stauth
 
-# 📁 Backup-Funktion
-def sichere_backup(datei):
-    backup_dir = "backup"
-    if not os.path.exists(backup_dir):
-        os.makedirs(backup_dir)
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    ziel = os.path.join(backup_dir, os.path.basename(datei).replace(".csv", f"_backup_{timestamp}.csv"))
-    shutil.copyfile(datei, ziel)
+# === DATEIPFADE ===
+KUNDEN_DATEI = "data/kunden.csv"
+KOMMENTAR_DATEI = "data/kommentare.csv"
+LOG_DATEI = "data/logs.csv"
+BACKUP_ORDNER = "backup"
 
-# 🔐 Login-Konfiguration
+# === BACKUP-FUNKTION ===
+def sichere_backup(dateipfad):
+    if not os.path.exists(BACKUP_ORDNER):
+        os.makedirs(BACKUP_ORDNER)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    dateiname = os.path.basename(dateipfad).replace(".csv", f"_backup_{timestamp}.csv")
+    shutil.copyfile(dateipfad, os.path.join(BACKUP_ORDNER, dateiname))
+
+# === LOGIN ===
 with open("config.yaml") as file:
     config = yaml.safe_load(file)
 
@@ -32,32 +37,24 @@ name, authentication_status, username = authenticator.login("Login", location="m
 
 if authentication_status is False:
     st.error("Benutzername oder Passwort ist falsch.")
-if authentication_status is None:
+elif authentication_status is None:
     st.warning("Bitte einloggen.")
-if authentication_status:
-
+else:
     authenticator.logout("Logout", "sidebar")
     st.sidebar.success(f"Eingeloggt als {name}")
 
-    # 📄 Datei-Pfade
-    KUNDEN_DATEI = "data/kunden.csv"
-    KOMMENTAR_DATEI = "data/kommentare.csv"
-    LOG_DATEI = "data/logs.csv"
+    # === INITIALISIERUNG ===
+    if not os.path.exists("data"):
+        os.makedirs("data")
+    if not os.path.isfile(KUNDEN_DATEI):
+        pd.DataFrame(columns=["ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Status", "Tags", "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4", "Bestelldatum", "Erstgespräch", "Rechnung geschickt", "Rechnung bezahlt", "Zugang DigiMember"]).to_csv(KUNDEN_DATEI, index=False)
+    if not os.path.isfile(KOMMENTAR_DATEI):
+        pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
+    if not os.path.isfile(LOG_DATEI):
+        pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID", "Details"]).to_csv(LOG_DATEI, index=False)
 
-    def lade_daten():
-        if not os.path.exists("data"):
-            os.makedirs("data")
-        if not os.path.isfile(KUNDEN_DATEI):
-            pd.DataFrame(columns=[
-                "ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Status", "Tags",
-                "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4", "Bestelldatum", "Erstgespräch",
-                "Rechnung geschickt", "Rechnung bezahlt", "Zugang DigiMember"
-            ]).to_csv(KUNDEN_DATEI, index=False)
-        if not os.path.isfile(KOMMENTAR_DATEI):
-            pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
-        if not os.path.isfile(LOG_DATEI):
-            pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID", "Details"]).to_csv(LOG_DATEI, index=False)
-        return pd.read_csv(KUNDEN_DATEI), pd.read_csv(KOMMENTAR_DATEI)
+    kunden_df = pd.read_csv(KUNDEN_DATEI)
+    kommentar_df = pd.read_csv(KOMMENTAR_DATEI)
 
     def speichere_kunde(kunde, kunden_id=None):
         df = pd.read_csv(KUNDEN_DATEI)
@@ -74,48 +71,69 @@ if authentication_status:
 
     def speichere_kommentar(kunden_id, kommentar_text):
         df = pd.read_csv(KOMMENTAR_DATEI)
-        neuer_kommentar = {
-            "Kunden-ID": kunden_id,
-            "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Kommentar": kommentar_text
-        }
+        neuer_kommentar = {"Kunden-ID": kunden_id, "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Kommentar": kommentar_text}
         df = pd.concat([df, pd.DataFrame([neuer_kommentar])])
         df.to_csv(KOMMENTAR_DATEI, index=False)
         sichere_backup(KOMMENTAR_DATEI)
 
     def log_aktion(aktion, kunden_id, details=""):
         df = pd.read_csv(LOG_DATEI)
-        neuer_log = {
-            "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Benutzer": name,
-            "Aktion": aktion,
-            "Kunden-ID": kunden_id,
-            "Details": details
-        }
+        neuer_log = {"Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Benutzer": name, "Aktion": aktion, "Kunden-ID": kunden_id, "Details": details}
         df = pd.concat([df, pd.DataFrame([neuer_log])])
         df.to_csv(LOG_DATEI, index=False)
         sichere_backup(LOG_DATEI)
 
     st.title("👤 Kundenmanagement Tool")
 
-    kunden_df, kommentar_df = lade_daten()
+    st.subheader("➕ Neuen Kunden anlegen")
+    with st.form("neukunde_form"):
+        vorname = st.text_input("Vorname")
+        nachname = st.text_input("Nachname")
+        email = st.text_input("E-Mail")
+        adresse = st.text_area("Adresse")
+        produkt = st.selectbox("Produkt", ["kein Produkt", "Expert-Advisor", "LIT2Trade"])
+        status = st.selectbox("Status", ["Interesse", "Kauf"])
+        tags = st.text_input("Tags (durch Semikolon getrennt)")
+        kommentar = st.text_area("Kommentar")
+        submitted = st.form_submit_button("Speichern")
+
+        if submitted and vorname and nachname and email:
+            kunde = {
+                "Vorname": vorname,
+                "Nachname": nachname,
+                "E-Mail": email,
+                "Adresse": adresse,
+                "Produkt": produkt,
+                "Status": status,
+                "Tags": tags,
+                "Konto ID1": "",
+                "Konto ID2": "",
+                "Konto ID3": "",
+                "Konto ID4": "",
+                "Bestelldatum": "",
+                "Erstgespräch": "",
+                "Rechnung geschickt": False,
+                "Rechnung bezahlt": False,
+                "Zugang DigiMember": False
+            }
+            neue_id = speichere_kunde(kunde)
+            if kommentar.strip():
+                speichere_kommentar(neue_id, kommentar.strip())
+            log_aktion("Neu angelegt", neue_id, f"{vorname} {nachname}")
+            st.success("Kunde gespeichert.")
+            st.experimental_rerun()
 
     st.subheader("📄 Kundendaten bearbeiten")
-
     if not kunden_df.empty:
-        bearbeite_kunde = st.selectbox(
-            "Kunden-ID auswählen",
-            kunden_df["ID"].astype(str) + " – " + kunden_df["Vorname"] + " " + kunden_df["Nachname"]
-        )
-
-        if bearbeite_kunde:
-            ausgewählte_id = int(bearbeite_kunde.split("–")[0].strip())
+        kunde_auswahl = st.selectbox("Kunden-ID auswählen", kunden_df["ID"].astype(str) + " – " + kunden_df["Vorname"] + " " + kunden_df["Nachname"])
+        if kunde_auswahl:
+            ausgewählte_id = int(kunde_auswahl.split("–")[0].strip())
             kunde = kunden_df[kunden_df["ID"] == ausgewählte_id].iloc[0]
-            with st.form("kunde_bearbeiten"):
+
+            with st.form("bearbeiten_form"):
                 kunde_dict = {}
                 for feld in ["Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Status"]:
                     kunde_dict[feld] = st.text_input(feld, value=str(kunde[feld]))
-
                 kommentar_neu = st.text_area("Neuen Kommentar hinzufügen")
                 speichern = st.form_submit_button("Speichern")
 
@@ -132,16 +150,13 @@ if authentication_status:
                     if kommentar_neu.strip():
                         speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
                     log_aktion("Bearbeitet", ausgewählte_id, aenderungs_text)
-                    st.success("Kunde wurde aktualisiert.")
+                    st.success("Kunde aktualisiert.")
                     st.experimental_rerun()
 
     st.subheader("📊 Änderungsprotokoll")
-    try:
-        log_df = pd.read_csv(LOG_DATEI)
-        log_df = log_df.sort_values("Datum", ascending=False).reset_index(drop=True)
-        st.dataframe(log_df)
-    except:
-        st.info("Keine Logs gefunden.")
+    if os.path.isfile(LOG_DATEI):
+        logs = pd.read_csv(LOG_DATEI).sort_values("Datum", ascending=False)
+        st.dataframe(logs)
 
     st.subheader("⬇️ Backup herunterladen")
     with open(KUNDEN_DATEI, "rb") as f:
