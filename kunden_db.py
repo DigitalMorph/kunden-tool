@@ -162,6 +162,32 @@ if authentication_status:
                 st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
                 st.experimental_rerun()
 
+    import glob
+
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📦 Backup wiederherstellen")
+
+    backup_typ = st.selectbox("Datei wählen", ["Kunden", "Kommentare"])
+    backup_files = sorted(
+        glob.glob(f"backup/{'kunden' if backup_typ == 'Kunden' else 'kommentare'}_*.csv"),
+        reverse=True
+    )
+
+    if backup_files:
+        selected_backup = st.selectbox("Backup auswählen", backup_files)
+        if st.sidebar.button("🔄 Wiederherstellen"):
+            try:
+                ziel = KUNDEN_DATEI if backup_typ == "Kunden" else KOMMENTAR_DATEI
+                df_backup = pd.read_csv(selected_backup)
+                df_backup.to_csv(ziel, index=False)
+                st.sidebar.success(f"{backup_typ}-Backup erfolgreich wiederhergestellt.")
+                st.experimental_rerun()
+            except Exception as e:
+                st.sidebar.error(f"Fehler bei Wiederherstellung: {e}")
+    else:
+        st.sidebar.info("Keine Backups gefunden.")
+
+
     st.subheader("🔍 Kunden filtern (optional)")
     tag_filter = st.multiselect("Tags", ALLE_TAGS)
     produkt_filter = st.multiselect("Produkt", ALLE_PRODUKTE)
