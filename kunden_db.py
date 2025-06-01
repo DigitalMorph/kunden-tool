@@ -188,8 +188,30 @@ if authentication_status:
                         st.experimental_rerun()
 
                 kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id].sort_values("Datum", ascending=False).reset_index(drop=True)
-                st.markdown("""<style>.kommentar-box {white-space: pre-wrap; border: 1px solid #ddd; padding: 0px 8px 6px 8px; margin-bottom: 4px; border-radius: 4px; background-color: #f9f9f9; font-size: 13px; line-height: 1.0;} .kommentar-datum {font-weight: bold; color: #1b3061; margin: 0;} .kommentar-text {margin: 0;}</style>""", unsafe_allow_html=True)
-
+                st.markdown("""<style>
+                    .kommentar-box {
+                        white-space: pre-wrap;
+                        border: 1px solid #ddd;
+                        padding: 0px 8px 6px 8px;
+                        margin-bottom: 4px;
+                        border-radius: 4px;
+                        background-color: #f9f9f9;
+                        font-size: 13px;
+                        line-height: 1.3;
+                    }
+                    .kommentar-datum {
+                        font-weight: bold;
+                        color: #1b3061;
+                        margin: 0;
+                    }
+                    .kommentar-text {
+                        margin: 0;
+                    }
+                    .block-container {
+                        padding-left: 5rem !important;
+                        padding-right: 5rem !important;
+                    }
+                </style>""", unsafe_allow_html=True)
                 # Kunden löschen
                 if st.button("🗑️ Kundenprofil löschen"):
                     kunden_df = kunden_df[kunden_df["ID"] != ausgewählte_id]
