@@ -57,18 +57,22 @@ if authentication_status:
         if not os.path.isfile(LOG_DATEI):
             pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID", "Details"]).to_csv(LOG_DATEI, index=False)
 
-        # Backup erstellen
+        # Gemeinsamer Zeitstempel
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        kunden_backup = f"backup/kunden_{timestamp}.csv"
-        kommentare_backup = f"backup/kommentare_{timestamp}.csv"
+        kunden_backup_path = f"backup/{timestamp}_kunden.csv"
+        kommentare_backup_path = f"backup/{timestamp}_kommentare.csv"
 
         try:
-            pd.read_csv(KUNDEN_DATEI).to_csv(kunden_backup, index=False)
-            pd.read_csv(KOMMENTAR_DATEI).to_csv(kommentare_backup, index=False)
+            # Nur speichern, wenn noch nicht vorhanden (z. B. bei erneutem App-Start)
+            if not os.path.exists(kunden_backup_path):
+                pd.read_csv(KUNDEN_DATEI).to_csv(kunden_backup_path, index=False)
+            if not os.path.exists(kommentare_backup_path):
+                pd.read_csv(KOMMENTAR_DATEI).to_csv(kommentare_backup_path, index=False)
         except Exception as e:
-            st.warning(f"Backup fehlgeschlagen: {e}")
+            st.warning(f"⚠️ Backup fehlgeschlagen: {e}")
 
         return pd.read_csv(KUNDEN_DATEI), pd.read_csv(KOMMENTAR_DATEI)
+
 
 
     def speichere_kunde(kunde, kunden_id=None):
@@ -174,25 +178,29 @@ if authentication_status:
     st.sidebar.markdown("---")
     st.sidebar.subheader("📦 Backup wiederherstellen")
 
-    backup_typ = st.selectbox("Datei wählen", ["Kunden", "Kommentare"])
-    backup_files = sorted(
-        glob.glob(f"backup/{'kunden' if backup_typ == 'Kunden' else 'kommentare'}_*.csv"),
-        reverse=True
-    )
+    # Alle Kunden-Backup-Dateien laden
+    backup_files_kunden = sorted(glob.glob("backup/*_kunden.csv"), reverse=True)
 
-    if backup_files:
-        selected_backup = st.selectbox("Backup auswählen", backup_files)
-        if st.sidebar.button("🔄 Wiederherstellen"):
+    if backup_files_kunden:
+        # Zeitstempel extrahieren und zur Auswahl anbieten
+        timestamps = [os.path.basename(f).replace("_kunden.csv", "").replace("backup/", "") for f in backup_files_kunden]
+        selected_timestamp = st.sidebar.selectbox("Backup-Zeitpunkt auswählen", timestamps)
+
+        if st.sidebar.button("🔄 Gesamtes Backup wiederherstellen"):
             try:
-                ziel = KUNDEN_DATEI if backup_typ == "Kunden" else KOMMENTAR_DATEI
-                df_backup = pd.read_csv(selected_backup)
-                df_backup.to_csv(ziel, index=False)
-                st.sidebar.success(f"{backup_typ}-Backup erfolgreich wiederhergestellt.")
+                kunden_backup = f"backup/{selected_timestamp}_kunden.csv"
+                kommentare_backup = f"backup/{selected_timestamp}_kommentare.csv"
+
+                pd.read_csv(kunden_backup).to_csv(KUNDEN_DATEI, index=False)
+                pd.read_csv(kommentare_backup).to_csv(KOMMENTAR_DATEI, index=False)
+
+                st.sidebar.success("Backup von Kunden **und** Kommentaren wurde erfolgreich wiederhergestellt.")
                 st.experimental_rerun()
             except Exception as e:
-                st.sidebar.error(f"Fehler bei Wiederherstellung: {e}")
+                st.sidebar.error(f"Fehler beim Wiederherstellen: {e}")
     else:
-        st.sidebar.info("Keine Backups gefunden.")
+        st.sidebar.info("Noch keine Backups vorhanden.")
+
 
 
     st.subheader("🔍 Kunden filtern (optional)")
