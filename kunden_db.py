@@ -41,17 +41,35 @@ if authentication_status:
     def lade_daten():
         if not os.path.exists("data"):
             os.makedirs("data")
+        if not os.path.exists("backup"):
+            os.makedirs("backup")
+
         if not os.path.isfile(KUNDEN_DATEI):
             pd.DataFrame(columns=[
                 "ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Status", "Tags",
                 "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4", "Bestelldatum", "Erstgespräch",
                 "Rechnung geschickt", "Rechnung bezahlt", "Zugang DigiMember"
             ]).to_csv(KUNDEN_DATEI, index=False)
+
         if not os.path.isfile(KOMMENTAR_DATEI):
             pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
+
         if not os.path.isfile(LOG_DATEI):
             pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID", "Details"]).to_csv(LOG_DATEI, index=False)
+
+        # Backup erstellen
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        kunden_backup = f"backup/kunden_{timestamp}.csv"
+        kommentare_backup = f"backup/kommentare_{timestamp}.csv"
+
+        try:
+            pd.read_csv(KUNDEN_DATEI).to_csv(kunden_backup, index=False)
+            pd.read_csv(KOMMENTAR_DATEI).to_csv(kommentare_backup, index=False)
+        except Exception as e:
+            st.warning(f"Backup fehlgeschlagen: {e}")
+
         return pd.read_csv(KUNDEN_DATEI), pd.read_csv(KOMMENTAR_DATEI)
+
 
     def speichere_kunde(kunde, kunden_id=None):
         df = pd.read_csv(KUNDEN_DATEI)
