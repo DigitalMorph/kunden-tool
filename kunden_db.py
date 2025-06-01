@@ -180,7 +180,7 @@ if authentication_status:
             kunden_df, kommentar_df = lade_daten()
             bearbeite_kunde = st.selectbox(
                 "Kunden-ID auswählen",
-                kunden_df["ID"].astype(str) + " – " + (kunden_df["Vorname"].fillna("") + " " + kunden_df["Nachname"].fillna("")),
+                kunden_df.apply(lambda row: f"{row['ID']} – {row['Vorname'] or ''} {row['Nachname'] or ''}", axis=1),
                 key="bearbeiten_selectbox"
             )
             if bearbeite_kunde:
