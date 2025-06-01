@@ -45,7 +45,7 @@ if authentication_status:
             pd.DataFrame(columns=[
                 "ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Status", "Tags",
                 "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4", "Bestelldatum", "Erstgespräch",
-                "Rechnung geschickt", "Rechnung bezahlt", "Zugang DigiMember"
+                "Rechnung geschickt", "Rechnung bezahlt", "Zugang DigiMember", "Begleitdokumente geschickt", "Begleitdokumente signed"
             ]).to_csv(KUNDEN_DATEI, index=False)
         if not os.path.isfile(KOMMENTAR_DATEI):
             pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
@@ -154,6 +154,8 @@ if authentication_status:
         rechnung_geschickt = False
         rechnung_bezahlt = False
         zugang_digimember = False
+        docs_send = False
+        docs_signed = False
 
         if status == "gekauft":
             bestelldatum = st.date_input("Bestelldatum")
@@ -188,7 +190,9 @@ if authentication_status:
                     "Erstgespräch": str(erstgespraech),
                     "Rechnung geschickt": rechnung_geschickt,
                     "Rechnung bezahlt": rechnung_bezahlt,
-                    "Zugang DigiMember": zugang_digimember
+                    "Zugang DigiMember": zugang_digimember,
+                    "Begleitdokumente geschickt": docs_send,
+                    "Begleitdokumente signed": docs_signed
                 }
                 neue_id = speichere_kunde(kunde)
                 if kommentar.strip():
@@ -318,9 +322,11 @@ if authentication_status:
                         kunde_dict["Rechnung geschickt"] = st.checkbox("Rechnung geschickt", value=bool(kunde["Rechnung geschickt"]))
                         kunde_dict["Rechnung bezahlt"] = st.checkbox("Rechnung bezahlt", value=bool(kunde["Rechnung bezahlt"]))
                         kunde_dict["Zugang DigiMember"] = st.checkbox("Zugang DigiMember angelegt", value=bool(kunde["Zugang DigiMember"]))
+                        kunde_dict["Begleitdokumente geschickt"] = st.checkbox("Begleitdokumente geschickt angelegt", value=bool(kunde["Begleitdokumente geschickt"]))
+                        kunde_dict["Begleitdokumente signed"] = st.checkbox("Begleitdokumente signed angelegt", value=bool(kunde["Begleitdokumente signed"]))
                     else:
                         kunde_dict["Bestelldatum"] = ""
-                        kunde_dict["Rechnung geschickt"] = kunde_dict["Rechnung bezahlt"] = kunde_dict["Zugang DigiMember"] = False
+                        kunde_dict["Rechnung geschickt"] = kunde_dict["Rechnung bezahlt"] = kunde_dict["Zugang DigiMember"] = kunde_dict["Begleitdokumente geschickt"] = kunde_dict["Begleitdokumente signed"] = False
 
                     kommentar_neu = st.text_area("Neuen Kommentar hinzufügen")
                     speichern = st.form_submit_button("Änderungen speichern")
