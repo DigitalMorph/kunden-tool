@@ -258,8 +258,6 @@ if authentication_status:
                     st.success("Kunde wurde gelöscht.")
                     st.experimental_rerun()
 
-
-
                 for _, row in kommentare_kunde.iterrows():
                     st.markdown(f"""
                         <div class='kommentar-box'>
@@ -267,6 +265,15 @@ if authentication_status:
                             <div class='kommentar-text'>{row['Kommentar']}</div>
                         </div>
                     """, unsafe_allow_html=True)
+
+                # Log-Ansicht anzeigen
+                st.subheader("📋 Änderungsprotokoll")
+                try:
+                    logs_df = pd.read_csv(log_datei)
+                    logs_df = logs_df.sort_values("Datum", ascending=False).reset_index(drop=True)
+                    st.dataframe(logs_df)
+                except Exception as e:
+                    st.info("Noch keine Logs vorhanden oder Datei konnte nicht geladen werden.")
     else:
         st.info("❕ Noch keine Kunden vorhanden.")
 
