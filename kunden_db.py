@@ -41,21 +41,19 @@ if authentication_status:
     def lade_daten():
         if not os.path.exists("data"):
             os.makedirs("data")
-        if not os.path.exists("backup"):
-            os.makedirs("backup")
-
         if not os.path.isfile(KUNDEN_DATEI):
             pd.DataFrame(columns=[
                 "ID", "Vorname", "Nachname", "E-Mail", "Adresse", "Produkt", "Status", "Tags",
                 "Konto ID1", "Konto ID2", "Konto ID3", "Konto ID4", "Bestelldatum", "Erstgespräch",
                 "Rechnung geschickt", "Rechnung bezahlt", "Zugang DigiMember"
             ]).to_csv(KUNDEN_DATEI, index=False)
-
         if not os.path.isfile(KOMMENTAR_DATEI):
             pd.DataFrame(columns=["Kunden-ID", "Datum", "Kommentar"]).to_csv(KOMMENTAR_DATEI, index=False)
-
         if not os.path.isfile(LOG_DATEI):
             pd.DataFrame(columns=["Datum", "Benutzer", "Aktion", "Kunden-ID", "Details"]).to_csv(LOG_DATEI, index=False)
+
+        return pd.read_csv(KUNDEN_DATEI), pd.read_csv(KOMMENTAR_DATEI)
+
 
         # Gemeinsamer Zeitstempel
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -108,6 +106,22 @@ if authentication_status:
         }
         df = pd.concat([df, pd.DataFrame([neuer_log])])
         df.to_csv(LOG_DATEI, index=False)
+
+
+    def erzeuge_backup():
+        if not os.path.exists("backup"):
+            os.makedirs("backup")
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        kunden_backup = f"backup/{timestamp}_kunden.csv"
+        kommentare_backup = f"backup/{timestamp}_kommentare.csv"
+
+        try:
+            pd.read_csv(KUNDEN_DATEI).to_csv(kunden_backup, index=False)
+            pd.read_csv(KOMMENTAR_DATEI).to_csv(kommentare_backup, index=False)
+            st.sidebar.info(f"📁 Backup erstellt: {timestamp}")
+        except Exception as e:
+            st.warning(f"⚠️ Backup fehlgeschlagen: {e}")
 
 
     st.title("👤 Kundenmanagement Tool")
@@ -170,6 +184,7 @@ if authentication_status:
                     
                     speichere_kommentar(neue_id, kommentar.strip())
                 log_aktion("Neu angelegt", neue_id)
+                erzeuge_backup()
                 st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
                 st.experimental_rerun()
 
@@ -273,6 +288,7 @@ if authentication_status:
                         if kommentar_neu.strip():
                             speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
                         log_aktion("Bearbeitet", ausgewählte_id, aenderungs_text)
+                        erzeuge_backup()
                         st.success("Kunde wurde aktualisiert.")
                         st.experimental_rerun()
 
@@ -313,6 +329,7 @@ if authentication_status:
                     kommentar_df = kommentar_df[kommentar_df["Kunden-ID"] != ausgewählte_id]
                     kommentar_df.to_csv(KOMMENTAR_DATEI, index=False)
                     log_aktion("Gelöscht", ausgewählte_id)
+                    erzeuge_backup()
                     st.success("Kunde wurde gelöscht.")
                     st.experimental_rerun()
 
