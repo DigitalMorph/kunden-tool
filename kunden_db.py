@@ -138,6 +138,7 @@ if authentication_status:
                 }
                 neue_id = speichere_kunde(kunde)
                 if kommentar.strip():
+                    
                     speichere_kommentar(neue_id, kommentar.strip())
                 log_aktion("Neu angelegt", neue_id)
                 st.success(f"Kunde {vorname} {nachname} wurde erfolgreich angelegt.")
@@ -209,6 +210,8 @@ if authentication_status:
                         aenderungs_text = "; ".join(aenderungen) if aenderungen else "Keine Änderungen"
 
                         speichere_kunde(kunde_dict, kunden_id=ausgewählte_id)
+                        if kommentar_neu.strip():
+                            speichere_kommentar(ausgewählte_id, kommentar_neu.strip())
                         log_aktion("Bearbeitet", ausgewählte_id, aenderungs_text)
                         st.success("Kunde wurde aktualisiert.")
                         st.experimental_rerun()
