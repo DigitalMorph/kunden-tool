@@ -188,7 +188,6 @@ if authentication_status:
                         st.experimental_rerun()
 
                 kommentare_kunde = kommentar_df[kommentar_df["Kunden-ID"] == ausgewählte_id].sort_values("Datum", ascending=False).reset_index(drop=True)
-                st.set_page_config(layout="wide")
                 
                 st.markdown("""<style>
                     .kommentar-box {
