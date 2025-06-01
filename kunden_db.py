@@ -135,9 +135,10 @@ if authentication_status:
         if submitted and vorname and nachname and email:
             kunden_df, _ = lade_daten()  # frische Daten
             doppelt = kunden_df[
-                (kunden_df["Vorname"].str.lower().str.strip() == vorname.strip().lower()) &
-                (kunden_df["Nachname"].str.lower().str.strip() == nachname.strip().lower())
+                (kunden_df["Vorname"].astype(str).str.lower().str.strip() == vorname.strip().lower()) &
+                (kunden_df["Nachname"].astype(str).str.lower().str.strip() == nachname.strip().lower())
             ]
+
             if not doppelt.empty:
                 st.warning(f"⚠️ Kunde '{vorname} {nachname}' existiert bereits.")
             else:
