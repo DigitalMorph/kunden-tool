@@ -75,17 +75,17 @@ if authentication_status:
         df = pd.concat([df, pd.DataFrame([neuer_kommentar])])
         df.to_csv(KOMMENTAR_DATEI, index=False)
 
-        def log_aktion(aktion, kunden_id, details=""):
-            df = pd.read_csv(LOG_DATEI)
-            neuer_log = {
-                "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Benutzer": name,
-                "Aktion": aktion,
-                "Kunden-ID": kunden_id,
-                "Details": details
-            }
-            df = pd.concat([df, pd.DataFrame([neuer_log])])
-            df.to_csv(LOG_DATEI, index=False)
+    def log_aktion(aktion, kunden_id, details=""):
+        df = pd.read_csv(LOG_DATEI)
+        neuer_log = {
+            "Datum": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "Benutzer": name,
+            "Aktion": aktion,
+            "Kunden-ID": kunden_id,
+            "Details": details
+        }
+        df = pd.concat([df, pd.DataFrame([neuer_log])])
+        df.to_csv(LOG_DATEI, index=False)
 
 
     st.title("👤 Kundenmanagement Tool")
